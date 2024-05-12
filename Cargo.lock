@@ -3,5 +3,9 @@
 version = 3
 
 [[package]]
-name = "error_info"
+name = "error_code"
+version = "0.1.0"
+
+[[package]]
+name = "error_code_derive"
 version = "0.1.0"

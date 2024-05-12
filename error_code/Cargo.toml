@@ -1,0 +1,8 @@
+[package]
+name = "error_code"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Daniel Liu <139250065@qq.com>"]
+
+[dependencies]
