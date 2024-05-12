@@ -6,3 +6,10 @@ license = "MIT"
 authors = ["Daniel Liu <139250065@qq.com>"]
 
 [dependencies]
+error_code_derive = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+error_code = { workspace = true }
+http = { workspace = true }
+thiserror = { workspace = true }

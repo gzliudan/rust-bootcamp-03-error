@@ -1,8 +1,10 @@
 [workspace]
 members = ["error_code", "error_code_derive"]
 resolver = "2"
-license = "MIT"
 
 [workspace.dependencies]
+anyhow = "1"
 error_code = { path = "./error_code" }
 error_code_derive = { path = "./error_code_derive" }
+http = "1"
+thiserror = "1"
