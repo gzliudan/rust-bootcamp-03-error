@@ -1,5 +1,5 @@
 use darling::{
-    ast::{Data, Fields},
+    ast::{Data, Fields, Style},
     util, FromDeriveInput, FromVariant,
 };
 use proc_macro2::TokenStream;
@@ -16,8 +16,6 @@ struct ErrorData {
     prefix: String,
 }
 
-// TODO: do we need fields?
-#[allow(dead_code)]
 #[derive(Debug, FromVariant)]
 #[darling(attributes(error_info))]
 struct EnumVariants {
@@ -49,16 +47,21 @@ pub(crate) fn process_error_info(input: DeriveInput) -> TokenStream {
         .map(|v| {
             let EnumVariants {
                 ident,
-                fields: _,
+                fields,
                 code,
                 app_code,
                 client_msg,
             } = v;
             let code = format!("{}{}", prefix, code);
+            let varint_code = match fields.style {
+                Style::Struct => quote! { #name::#ident { .. } },
+                Style::Tuple => quote! { #name::#ident(_) },
+                Style::Unit => quote! { #name::#ident },
+            };
 
             quote! {
-                #name::#ident(_) => {
-                    ErrorInfo::try_new(
+                #varint_code => {
+                    ErrorInfo::new(
                         #app_code,
                         #code,
                         #client_msg,
@@ -74,7 +77,7 @@ pub(crate) fn process_error_info(input: DeriveInput) -> TokenStream {
         impl #generics ToErrorInfo for #name #generics {
             type T = #app_type;
 
-            fn to_error_info(&self) -> Result<ErrorInfo<Self::T>, <Self::T as std::str::FromStr>::Err> {
+            fn to_error_info(&self) -> ErrorInfo<Self::T> {
                 match self {
                     #(#code),*
                 }
@@ -91,14 +94,16 @@ mod tests {
     fn test_data_struct() {
         let input = r#"
         #[derive(thiserror::Error, ToErrorInfo)]
-        #[error_info(app_type="StatusCode", prefix="01")]
+        #[error_info(app_type="http::StatusCode", prefix="01")]
         pub enum MyError {
         #[error("Invalid command: {0}")]
         #[error_info(code="IC", app_code="400")]
         InvalidCommand(String),
+
         #[error("Invalid argument: {0}")]
         #[error_info(code="IA", app_code="400", client_msg="friendly msg")]
         InvalidArgument(String),
+
         #[error("{0}")]
         #[error_info(code="RE", app_code="500")]
         RespError(#[from] RespError),
@@ -108,6 +113,9 @@ mod tests {
         let parsed = syn::parse_str(input).unwrap();
         let info = ErrorData::from_derive_input(&parsed).unwrap();
         println!("{:#?}", info);
+
+        assert_eq!(info.ident.to_string(), "MyError");
+        assert_eq!(info.prefix, "01");
 
         let code = process_error_info(parsed);
         println!("{}", code);

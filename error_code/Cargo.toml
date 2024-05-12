@@ -6,7 +6,13 @@ license = "MIT"
 authors = ["Daniel Liu <139250065@qq.com>"]
 
 [dependencies]
+axum = { version = "0.7.5", features = ["http2"] }
+backtrace = "0.3.71"
+base64 = "0.22.1"
 error_code_derive = { workspace = true }
+tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "macros"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
 [dev-dependencies]
 anyhow = { workspace = true }
